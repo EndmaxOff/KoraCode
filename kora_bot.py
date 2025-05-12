@@ -1,3 +1,4 @@
+from roleplay import generar_respuesta_roleplay
 import os
 import discord
 from discord.ext import commands, tasks
@@ -26,6 +27,11 @@ horarios = {
 async def on_ready():
     print(f"Bot conectado como {bot.user}")
     revisar_eventos.start()
+
+@bot.command(name="rol")
+async def rol(ctx, *, mensaje_usuario):
+    respuesta = generar_respuesta_roleplay(mensaje_usuario)
+    await ctx.send(respuesta)
 
 @tasks.loop(minutes=1)
 async def revisar_eventos():
