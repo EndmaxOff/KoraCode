@@ -1,19 +1,45 @@
+import g4f
+import json
 import os
-import openai
-from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Cargar cookies desde cookies.json
+try:
+    with open("cookies.json", "r", encoding="utf-8") as f:
+        cookies = json.load(f)
+except FileNotFoundError:
+    cookies = {}
 
-def generar_respuesta_roleplay(prompt):
+# Ejecutar g4f sin abrir navegador
+os.environ["NODRIVER_HEADLESS"] = "1"
+
+def generar_respuesta_roleplay(mensaje_usuario):
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+        respuesta = g4f.ChatCompletion.create(
+            model="gemini-1-5-pro",
+            provider=g4f.Provider.Gemini,
             messages=[
-                {"role": "system", "content": "Eres Kora Core, una IA emocional, sarcástica, amable si te tratan bien, pero cortante si te insultan."},
-                {"role": "user", "content": prompt}
-            ]
+                {"role": "user", "content": f"{cargar_personalidad()}\nTú: {mensaje_usuario}\nKora:"}
+            ],
+            cookies=cookies
         )
-        return response.choices[0].message.content
+        return f"Kora: {respuesta}"
     except Exception as e:
-        print("⚠️ ERROR AL CONSULTAR OPENAI:", e)
-        return "⚠️ Kora no sabe qué responderte... sorry."
+        return f"⚠️ Error al contactar con g4f: {e}"
+
+def cargar_personalidad():
+    personalidad = ""
+    funciones = ""
+
+    try:
+        with open("personalidad.txt", "r", encoding="utf-8") as f:
+            personalidad = f.read().strip()
+    except FileNotFoundError:
+        personalidad = "Eres una IA de roleplay llamada Kora. Eres amable, sarcástica y emocional. Interactúa como un personaje, no como un asistente."
+
+    try:
+        with open("funciones.txt", "r", encoding="utf-8") as f:
+            funciones = f.read().strip()
+    except FileNotFoundError:
+        funciones = ""
+
+    return f"{personalidad}\n\n{funciones}"
